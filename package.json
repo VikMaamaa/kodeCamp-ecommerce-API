@@ -1,0 +1,20 @@
+{
+  "name": "Ecommerce_API",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "victor maamaa",
+  "license": "MIT",
+  "scripts": {
+    "dev-start": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "mongoose": "^6.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}
