@@ -24,7 +24,7 @@ try {
 
 exports.list = async(req,res) => {
 try {
-   const allProducts = await Product.find({}).sort([['createdDate']]).exec()
+   const allProducts = await Product.find({}).sort([['price']]).exec()
 
    res.status(200).json(allProducts)
 } catch (error) {
@@ -78,3 +78,31 @@ try {
 }
 }
 
+//for searching
+
+//search by name
+exports.nameSearch = async(req,res) => {
+    try {
+        let productName = req.params.productName
+        
+        const products = await Product.find( {$search: productName}).exec()
+
+        res.status(200).json(products)
+    } catch (error) {
+        console.log(error)
+        res.status(500).json(error)
+    }
+}
+
+//search by category
+exports.categorySearch = async(req, res) => {
+    try {
+        let category = req.params.categoryName
+        const products = await Product.find({category: category}).exec()
+
+        res.status(200).json(products)
+    } catch (error) {
+        console.log(error)
+        res.status(500).json(error)
+    }
+}
