@@ -63,7 +63,7 @@ exports.login = async(req, res) => {
         res.cookie('jwt', refreshToken, {
             sameSite: 'None',
             httpOnly: true,
-            //secure: true, 
+            secure: true, 
             maxAge: 24 * 60 * 60 * 1000,
         })
 
@@ -163,7 +163,7 @@ exports.tokenRefresh = async(req, res) => {
     try {
         //get cookies
         const cookies = req.cookies
-        console.log('refreshToken', cookies)
+       // console.log('refreshToken', cookies)
         if(!cookies?.jwt) {
             return res.status(401).json("Access denied, sign in")
         }
