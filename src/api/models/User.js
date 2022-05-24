@@ -22,7 +22,17 @@ const userSchema = new mongoose.Schema({
     password:{
         type:String,
         required: true,
-        index: true
+        index: true,
+        select: false
+    },
+    role:{
+        type:String,
+        default: 'subscriber'
+    },
+    refreshToken:{
+        type:String,
+        default:'',
+        select: false
     }
 }, { timestamps: true })
 

@@ -1,6 +1,7 @@
 const express = require('express');
 const {readdirSync} = require("fs")
 const cors = require('cors')
+const cookieParser = require('cookie-parser')
 const app = express();
 
 const { connectDatabase } = require('./src/config/database');
@@ -17,7 +18,7 @@ app.use(express.json({ limit: '10kb' }));
 
 //cors
 app.use(cors())
-
+app.use(cookieParser())
 
 
 connectDatabase(app);

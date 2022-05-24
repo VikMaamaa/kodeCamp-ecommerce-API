@@ -1,5 +1,6 @@
 const User  =  require('../models/User')
 const bcrypt = require("bcrypt")
+const jwt = require('jsonwebtoken');
 const  {userValidation} = require('../validations/user.validation.js');
 
 exports.createUser = async(req,res)=>{
@@ -39,6 +40,44 @@ exports.createUser = async(req,res)=>{
     
     }
 
+exports.login = async(req, res) => {
+
+    try {
+        const user = await User.findOne({email: req.body.email}).select('+password')
+        if(!user) res.status(400).json("user not found");
+
+       // console.log(user)
+        const validPassword = await bcrypt.compare(req.body.password, user.password)
+        if(!validPassword) res.status(400).json("incorrect password");
+    
+        //create access token
+       const accessToken = jwt.sign({user_id: user._id, role: user.role}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: 60*15})
+        
+       //create refresh token
+       const refreshToken = jwt.sign({user_id: user._id, role: user.role}, process.env.REFRESH_TOKEN_SECRET, {expiresIn: 60*60*24})
+
+       //store refresh token
+        user.refreshToken = refreshToken
+        await user.save();
+        // console.log('refresh Token', refreshToken)
+        res.cookie('jwt', refreshToken, {
+            sameSite: 'None',
+            httpOnly: true,
+            //secure: true, 
+            maxAge: 24 * 60 * 60 * 1000,
+        })
+
+        return res.status(200).json({
+            status: 'success',
+            accessToken
+        })
+        
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json(error)
+    }
+}
 
     exports.list = async(req, res) => {
         //get all users
@@ -113,3 +152,45 @@ exports.createUser = async(req,res)=>{
             res.status(500).json(error)
         }
     }
+
+//user logout
+exports.logout = async(req, res) => {
+    return res.clearCookie('jwt').status(200).json("logout successful")
+}
+
+//for refreshing token
+exports.tokenRefresh = async(req, res) => {
+    try {
+        //get cookies
+        const cookies = req.cookies
+        console.log('refreshToken', cookies)
+        if(!cookies?.jwt) {
+            return res.status(401).json("Access denied, sign in")
+        }
+
+        const refreshToken = cookies.jwt
+        
+        //find user
+        const user = await User.findOne({refreshToken})
+        if(!user) return res.status(401).json("Access denied, sign in");
+
+        jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET,
+            (err, decoded)=>{
+               
+                if(err || user.id !== decoded.user_id) {
+                    return res.status(403).json("Forbidden")
+                }
+
+                 //create access token
+       const accessToken = jwt.sign({user_id: user._id, role: user.role}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: 60*15})
+
+       return res.status(200).json({
+        status: 'success',
+        accessToken
+    })
+            })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json(error)
+    }
+}
